@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>네이밍 제안 도우미</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #5D5CDE;
+            --primary-hover: #4a49b7;
+            --light-bg: #FFFFFF;
+            --light-text: #333333;
+            --dark-bg: #181818;
+            --dark-text: #e0e0e0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .bg-theme {
+                background-color: var(--dark-bg);
+                color: var(--dark-text);
+            }
+            .result-card {
+                background-color: #262626;
+                color: var(--dark-text);
+            }
+            .form-input {
+                background-color: #2d2d2d;
+                color: var(--dark-text);
+                border-color: #3d3d3d;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .bg-theme {
+                background-color: var(--light-bg);
+                color: var(--light-text);
+            }
+            .result-card {
+                background-color: #f8f8f8;
+                color: var(--light-text);
+            }
+            .form-input {
+                background-color: white;
+                color: var(--light-text);
+                border-color: #e2e8f0;
+            }
+        }
+
+        .prose a {
+            color: var(--primary-color);
+            text-decoration: underline;
+        }
+        
+        .prose h1, .prose h2, .prose h3 {
+            font-weight: bold;
+            margin-top: 1.2em;
+            margin-bottom: 0.5em;
+        }
+        
+        .prose h1 { font-size: 1.5em; }
+        .prose h2 { font-size: 1.3em; }
+        .prose h3 { font-size: 1.1em; }
+        
+        .prose p {
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        
+        .prose ul, .prose ol {
+            padding-left: 1.5em;
+            margin: 0.5em 0;
+        }
+        
+        .prose ul { list-style-type: disc; }
+        .prose ol { list-style-type: decimal; }
+        
+        .prose blockquote {
+            padding-left: 1em;
+            border-left: 3px solid var(--primary-color);
+            margin: 1em 0;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body class="bg-theme min-h-screen flex flex-col">
+    <div class="container mx-auto px-4 py-8 flex-grow max-w-3xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-center mb-2">네이밍 제안 도우미</h1>
+            <p class="text-lg">제품이나 서비스에 대한 요구사항을 입력하면 적절한 이름을 제안해 드립니다.</p>
+        </header>
+
+        <main>
+            <div class="mb-6">
+                <form id="naming-form" class="space-y-4">
+                    <div>
+                        <label for="requirements" class="block text-sm font-medium mb-1">요구사항 및 설명</label>
+                        <textarea 
+                            id="requirements" 
+                            rows="4" 
+                            class="form-input w-full px-4 py-2 rounded-lg text-base border shadow-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                            placeholder="예: 빠르고 직관적인 계산기 앱을 만들고 있습니다. 사용자가 일상적인 계산을 쉽게 할 수 있도록 디자인되었습니다."
+                            required
+                        ></textarea>
+                        <div class="flex justify-end mt-2">
+                            <button 
+                                type="button" 
+                                id="enhance-btn" 
+                                class="text-sm py-1 px-2 bg-[#5D5CDE] hover:bg-[#4a49b7] text-white rounded transition-colors"
+                            >
+                                요구사항 상세화하기
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="category" class="block text-sm font-medium mb-1">카테고리 (선택사항)</label>
+                        <select id="category" class="form-input w-full px-4 py-2 rounded-lg text-base border shadow-sm">
+                            <option value="">선택 안함</option>
+                            <option value="app">앱/소프트웨어</option>
+                            <option value="brand">브랜드/회사</option>
+                            <option value="product">제품</option>
+                            <option value="service">서비스</option>
+                            <option value="website">웹사이트</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="keywords" class="block text-sm font-medium mb-1">키워드 (선택사항, 쉼표로 구분)</label>
+                        <input 
+                            type="text" 
+                            id="keywords" 
+                            class="form-input w-full px-4 py-2 rounded-lg text-base border shadow-sm"
+                            placeholder="예: 계산, 수학, 간편함, 신속함"
+                        >
+                    </div>
+                    <div>
+                        <label for="language" class="block text-sm font-medium mb-1">선호 언어</label>
+                        <select id="language" class="form-input w-full px-4 py-2 rounded-lg text-base border shadow-sm">
+                            <option value="both">한국어 & 영어</option>
+                            <option value="korean">한국어만</option>
+                            <option value="english">영어만</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="suggestions" class="block text-sm font-medium mb-1">제안 받을 이름 개수</label>
+                        <select id="suggestions" class="form-input w-full px-4 py-2 rounded-lg text-base border shadow-sm">
+                            <option value="3">3개</option>
+                            <option value="5" selected>5개</option>
+                            <option value="7">7개</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button 
+                            type="submit" 
+                            id="submit-btn"
+                            class="w-full py-3 px-4 bg-[#5D5CDE] hover:bg-[#4a49b7] text-white rounded-lg transition-colors font-medium text-lg"
+                        >
+                            이름 제안 받기
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="result-container" class="mt-6 hidden">
+                <h2 class="text-xl font-bold mb-2">제안된 이름</h2>
+                <div id="loading" class="py-6 text-center hidden">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#5D5CDE]"></div>
+                    <p class="mt-2">제안 생성 중...</p>
+                </div>
+                <div id="result-content" class="result-card rounded-lg p-6 shadow-md prose max-w-none">
+                    <!-- 결과가 여기에 표시됩니다 -->
+                </div>
+                <div class="mt-4 text-center">
+                    <button 
+                        id="new-request-btn" 
+                        class="py-2 px-4 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                    >
+                        새로운 요청하기
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="py-4 text-center text-sm opacity-75">
+        <p>© 2023 네이밍 제안 도우미</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('naming-form');
+            const resultContainer = document.getElementById('result-container');
+            const resultContent = document.getElementById('result-content');
+            const loading = document.getElementById('loading');
+            const submitBtn = document.getElementById('submit-btn');
+            const newRequestBtn = document.getElementById('new-request-btn');
+            const enhanceBtn = document.getElementById('enhance-btn');
+            const requirementsTextarea = document.getElementById('requirements');
+
+            // 요구사항 상세화 모달 생성
+            const createEnhanceModal = () => {
+                // 이미 모달이 있으면 제거
+                const existingModal = document.getElementById('enhance-modal');
+                if (existingModal) existingModal.remove();
+
+                const modal = document.createElement('div');
+                modal.id = 'enhance-modal';
+                modal.className = 'fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50';
+                modal.innerHTML = `
+                    <div class="bg-theme max-w-lg w-full mx-4 rounded-lg shadow-lg overflow-hidden">
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-medium">요구사항 상세화</h3>
+                        </div>
+                        <div class="p-4">
+                            <div id="enhance-loading" class="py-4 text-center">
+                                <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#5D5CDE]"></div>
+                                <p class="mt-2">상세 요구사항 생성 중...</p>
+                            </div>
+                            <div id="enhance-content" class="prose max-w-none my-4 hidden">
+                                <!-- 여기에 상세 요구사항이 표시됩니다 -->
+                            </div>
+                        </div>
+                        <div class="p-4 bg-gray-50 dark:bg-gray-800 flex justify-end space-x-2">
+                            <button id="enhance-cancel" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded">취소</button>
+                            <button id="enhance-apply" class="px-4 py-2 bg-[#5D5CDE] hover:bg-[#4a49b7] text-white rounded hidden">적용하기</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+
+                // 이벤트 리스너 추가
+                document.getElementById('enhance-cancel').addEventListener('click', () => {
+                    modal.remove();
+                });
+
+                return modal;
+            };
+
+            // 핸들러 등록 - 네이밍 요청 처리
+            window.Poe.registerHandler("naming-handler", (result, context) => {
+                const msg = result.responses[0];
+                
+                if (msg.status === "error") {
+                    resultContent.innerHTML = `<p class="text-red-500">오류가 발생했습니다: ${msg.statusText || '알 수 없는 오류'}</p>`;
+                    loading.classList.add('hidden');
+                    resultContent.classList.remove('hidden');
+                } else if (msg.status === "incomplete") {
+                    // 부분 응답 표시
+                    resultContent.innerHTML = marked.parse(msg.content);
+                    loading.classList.add('hidden');
+                    resultContent.classList.remove('hidden');
+                } else if (msg.status === "complete") {
+                    // 최종 응답 표시
+                    resultContent.innerHTML = marked.parse(msg.content);
+                    loading.classList.add('hidden');
+                    resultContent.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // 요구사항 상세화 핸들러
+            window.Poe.registerHandler("enhance-handler", (result, context) => {
+                const msg = result.responses[0];
+                const enhanceContent = document.getElementById('enhance-content');
+                const enhanceLoading = document.getElementById('enhance-loading');
+                const enhanceApply = document.getElementById('enhance-apply');
+                
+                if (msg.status === "error") {
+                    enhanceContent.innerHTML = `<p class="text-red-500">오류가 발생했습니다: ${msg.statusText || '알 수 없는 오류'}</p>`;
+                    enhanceContent.classList.remove('hidden');
+                    enhanceLoading.classList.add('hidden');
+                } else if (msg.status === "incomplete") {
+                    // 부분 응답 표시
+                    enhanceContent.innerHTML = marked.parse(msg.content);
+                    enhanceContent.classList.remove('hidden');
+                    enhanceLoading.classList.add('hidden');
+                } else if (msg.status === "complete") {
+                    // 최종 응답 표시
+                    enhanceContent.innerHTML = marked.parse(msg.content);
+                    enhanceContent.classList.remove('hidden');
+                    enhanceLoading.classList.add('hidden');
+                    enhanceApply.classList.remove('hidden');
+                    
+                    // 적용하기 버튼에 이벤트 리스너 추가
+                    enhanceApply.addEventListener('click', () => {
+                        // 마크다운에서 일반 텍스트 추출
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = marked.parse(msg.content);
+                        requirementsTextarea.value = tempDiv.textContent.trim();
+                        
+                        // 모달 닫기
+                        document.getElementById('enhance-modal').remove();
+                    });
+                }
+            });
+
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const requirements = document.getElementById('requirements').value.trim();
+                if (!requirements) {
+                    alert('요구사항을 입력해주세요.');
+                    return;
+                }
+
+                // 폼 데이터 수집
+                const category = document.getElementById('category').value;
+                const keywords = document.getElementById('keywords').value;
+                const language = document.getElementById('language').value;
+                const suggestions = document.getElementById('suggestions').value;
+
+                // UI 상태 업데이트
+                submitBtn.disabled = true;
+                resultContainer.classList.remove('hidden');
+                resultContent.classList.add('hidden');
+                loading.classList.remove('hidden');
+
+                // 프롬프트 구성
+                let prompt = `@Claude-3.7-Sonnet 다음 요구사항에 맞는 이름을 제안해주세요:\n\n`;
+                prompt += `요구사항: ${requirements}\n`;
+                if (category) prompt += `카테고리: ${category}\n`;
+                if (keywords) prompt += `키워드: ${keywords}\n`;
+                
+                // 언어 선호도 추가
+                prompt += `선호 언어: ${language === 'korean' ? '한국어만' : language === 'english' ? '영어만' : '한국어와 영어 모두'}\n`;
+                
+                // 제안 개수 설정
+                prompt += `제안 개수: ${suggestions}개\n\n`;
+                
+                // 출력 형식 지정
+                prompt += `각 이름에 대해 다음 정보를 포함해 주세요:
+1. 제안된 이름
+2. 의미 및 배경 설명
+3. 왜 이 이름이 좋은지에 대한 이유
+
+마크다운 형식으로 응답해주세요. 각 제안은 명확하게 구분되어야 합니다.`;
+
+                try {
+                    await window.Poe.sendUserMessage(prompt, {
+                        handler: "naming-handler",
+                        stream: true,
+                        openChat: false
+                    });
+                } catch (err) {
+                    resultContent.innerHTML = `<p class="text-red-500">오류가 발생했습니다: ${err.message || '알 수 없는 오류'}</p>`;
+                    loading.classList.add('hidden');
+                    resultContent.classList.remove('hidden');
+                    submitBtn.disabled = false;
+                }
+            });
+
+            newRequestBtn.addEventListener('click', () => {
+                resultContainer.classList.add('hidden');
+                submitBtn.disabled = false;
+            });
+
+            // 요구사항 상세화 버튼 이벤트
+            enhanceBtn.addEventListener('click', async () => {
+                const requirements = requirementsTextarea.value.trim();
+                if (!requirements) {
+                    alert('요구사항을 먼저 입력해주세요.');
+                    return;
+                }
+
+                if (requirements.length > 500) {
+                    alert('요구사항이 이미 충분히 상세합니다.');
+                    return;
+                }
+
+                // 모달 생성
+                createEnhanceModal();
+
+                // 요구사항 상세화 요청
+                try {
+                    const prompt = `@Claude-3.7-Sonnet 다음 요구사항을 더 상세하게 보완해주세요:
+
+"${requirements}"
+
+이 요구사항은 네이밍 제안을 받기 위한 것입니다. 제품/서비스의 목적, 타겟 사용자, 주요 기능, 차별점, 추구하는 이미지 등을 포함하여 좀 더 구체적으로 작성해주세요. 최대 300단어 이내로 작성하세요.
+
+마크다운 형식으로 응답해 주세요.`;
+
+                    await window.Poe.sendUserMessage(prompt, {
+                        handler: "enhance-handler",
+                        stream: true,
+                        openChat: false
+                    });
+                } catch (err) {
+                    const enhanceContent = document.getElementById('enhance-content');
+                    const enhanceLoading = document.getElementById('enhance-loading');
+                    
+                    enhanceContent.innerHTML = `<p class="text-red-500">오류가 발생했습니다: ${err.message || '알 수 없는 오류'}</p>`;
+                    enhanceContent.classList.remove('hidden');
+                    enhanceLoading.classList.add('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
